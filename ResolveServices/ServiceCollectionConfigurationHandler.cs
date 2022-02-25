@@ -1,12 +1,12 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using ResolveServices.Attributes;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Microsoft.Extensions.DependencyInjection;
+using ResolveServices.Attributes;
 
-namespace SadadPsp.SharedKernel.DependencyInjection
+namespace ResolveServices
 {
     public static class ServiceCollectionConfigurationHandler
     {
@@ -17,14 +17,14 @@ namespace SadadPsp.SharedKernel.DependencyInjection
         public static void AddServicesWithAttribute(this IServiceCollection serviceCollection)
         {
             var currentPath = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
-            string searchPattern = $"*.dll";
-            var assemblyPaths = Directory.GetFiles(currentPath, searchPattern)?.ToList() ?? null;
+            var searchPattern = $"*.dll";
+            var assemblyPaths = Directory.GetFiles(currentPath, searchPattern).ToList();
 
-            if (assemblyPaths == null || !assemblyPaths.Any())
+            if (!assemblyPaths.Any())
                 return;
 
             var loadedAssemblies = new List<Assembly>();
-            foreach (string path in assemblyPaths)
+            foreach (var path in assemblyPaths)
             {
                 try
                 {
@@ -33,38 +33,35 @@ namespace SadadPsp.SharedKernel.DependencyInjection
                 }
                 catch (Exception)
                 {
-                    continue;
+                    // ignored
                 }
             }
 
             var implementationToBeRegistered = loadedAssemblies.SelectMany(assembly => assembly.GetTypes()).Where(exp => !exp.IsGenericType && exp.IsClass && (exp.IsDefined(typeof(SingletonServiceAttribute)) || exp.IsDefined(typeof(ScopedServiceAttribute)) || exp.IsDefined(typeof(TransientServiceAttribute)))).ToList();
 
-            if (implementationToBeRegistered == null || !implementationToBeRegistered.Any())
+            if (!implementationToBeRegistered.Any())
                 return;
 
-            IEnumerable<Type> allInterfaces;
-            Attribute customAttribute;
-            ServiceLifetime lifeTime;
-            bool isAlreadyRegistered;
             foreach (var implementation in implementationToBeRegistered)
             {
                 // Get Attribute of type 
-                customAttribute = implementation.GetCustomAttributes()?.Where(exp => exp is SingletonServiceAttribute || exp is ScopedServiceAttribute || exp is TransientServiceAttribute).FirstOrDefault() ?? null;
+                var customAttribute = implementation.GetCustomAttributes()?.Where(exp => exp is SingletonServiceAttribute || exp is ScopedServiceAttribute || exp is TransientServiceAttribute).FirstOrDefault() ?? null;
 
                 if (customAttribute == null)
                     continue;
 
                 // Detect type of Attribute
-                lifeTime = ServiceLifetime.Scoped;
-                if (customAttribute is SingletonServiceAttribute)
-                    lifeTime = ServiceLifetime.Singleton;
-                else if (customAttribute is TransientServiceAttribute)
-                    lifeTime = ServiceLifetime.Transient;
+                var lifeTime = customAttribute switch
+                {
+                    SingletonServiceAttribute => ServiceLifetime.Singleton,
+                    TransientServiceAttribute => ServiceLifetime.Transient,
+                    _ => ServiceLifetime.Scoped
+                };
 
                 // Get interfaces of type
-                allInterfaces = implementation.GetInterfaces()?.Except(implementation.BaseType?.GetInterfaces());
+                var allInterfaces = implementation.GetInterfaces()?.Except(implementation.BaseType?.GetInterfaces());
                 allInterfaces = allInterfaces?.Except(allInterfaces.SelectMany(exp => exp.GetInterfaces())).ToList();
-                isAlreadyRegistered = false;
+                var isAlreadyRegistered = false;
                 if (allInterfaces == null || !allInterfaces.Any())
                 {
                     isAlreadyRegistered = serviceCollection.Any(s => s.ImplementationType == implementation);

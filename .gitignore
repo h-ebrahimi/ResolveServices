@@ -4,3 +4,6 @@
 
 /.vs
 /ResolveServices/obj
+/ResolveServices/bin/Debug/net5.0
+/WebApplication/bin/Debug/net5.0
+/WebApplication/obj
