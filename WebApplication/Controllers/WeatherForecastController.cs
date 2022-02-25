@@ -1,9 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
+using WebApplication.Services;
 
 namespace WebApplication.Controllers
 {
@@ -11,29 +9,44 @@ namespace WebApplication.Controllers
     [Route("[controller]")]
     public class WeatherForecastController : ControllerBase
     {
-        private static readonly string[] Summaries = new[]
-        {
-            "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-        };
+        private ITestScopedService _scopedService;
+        private TestScopedServiceWithoutInterface _scopedServiceWithoutInterface;
+        private ITestSingletonService _singletonService;
+        private TestSingletonServiceWithoutInterface _singletonServiceWithoutInterface;
+        private ITestTransientService _transientService;
+        private TestTransientServiceWithoutInterface _transientServiceWithoutInterface;
+        private IServiceProvider _provider;
 
-        private readonly ILogger<WeatherForecastController> _logger;
-
-        public WeatherForecastController(ILogger<WeatherForecastController> logger)
+        public WeatherForecastController(/*ITestScopedService scopedService, TestScopedServiceWithoutInterface scopedServiceWithoutInterface, ITestSingletonService singletonService, TestSingletonServiceWithoutInterface singletonServiceWithoutInterface, ITestTransientService transientService, TestTransientServiceWithoutInterface transientServiceWithoutInterface*/ IServiceProvider provider)
         {
-            _logger = logger;
+            _provider = provider;
+
+            /*_scopedService = scopedService;
+            _scopedServiceWithoutInterface = scopedServiceWithoutInterface;
+            _singletonService = singletonService;
+            _singletonServiceWithoutInterface = singletonServiceWithoutInterface;
+            _transientService = transientService;
+            _transientServiceWithoutInterface = transientServiceWithoutInterface;*/
         }
 
         [HttpGet]
-        public IEnumerable<WeatherForecast> Get()
+        public IActionResult Get()
         {
-            var rng = new Random();
-            return Enumerable.Range(1, 5).Select(index => new WeatherForecast
+            var scope = _provider.CreateScope();
+            _scopedService = scope.ServiceProvider.GetRequiredService<ITestScopedService>();
+            var obj = new
             {
-                Date = DateTime.Now.AddDays(index),
-                TemperatureC = rng.Next(-20, 55),
-                Summary = Summaries[rng.Next(Summaries.Length)]
-            })
-            .ToArray();
+                //Service1 = _singletonServiceWithoutInterface.Do(),
+                //Service2 = _singletonService.Do(),
+
+                //Service3 = _scopedServiceWithoutInterface.Do(),
+                Service4 = _scopedService.Do(),
+
+                //Service5 = _transientServiceWithoutInterface.Do(),
+                //Service6 = _transientService.Do()
+            };
+
+            return Ok(obj);
         }
     }
 }
