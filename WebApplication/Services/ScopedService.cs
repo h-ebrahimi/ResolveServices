@@ -8,9 +8,7 @@ namespace WebApplication.Services
     {
         public string Do()
         {
-            var name = this.GetType().Name;
-            Console.WriteLine(this.GetType().Name);
-            return $"Service : {name}";
+            return $"Service : TestScopedService";
         }
     }
 
@@ -24,9 +22,7 @@ namespace WebApplication.Services
     {
         public string Do()
         {
-            var name = this.GetType().Name;
-            Console.WriteLine(this.GetType().Name);
-            return $"Service : {name}";
+            return $"Service : TestScopedServiceWithoutInterface";
         }
     }
 }

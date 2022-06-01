@@ -14,7 +14,7 @@ namespace ResolveServices
         /// Adds the services(interface/class) with attribute.
         /// </summary>
         /// <param name="serviceCollection">The service collection.</param>
-        public static void AddServicesWithAttribute(this IServiceCollection serviceCollection)
+        public static void ResolveServicesWithAttribute(this IServiceCollection serviceCollection)
         {
             var currentPath = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
             var searchPattern = $"*.dll";
@@ -80,7 +80,8 @@ namespace ResolveServices
                             continue;
 
                         // Register service
-                        serviceCollection.Add(new ServiceDescriptor(interfaceService, implementation, lifeTime));
+                        var descriptor = new ServiceDescriptor(interfaceService, implementation, lifeTime);                        
+                        serviceCollection.Add(descriptor);
                     }
                 }
             }

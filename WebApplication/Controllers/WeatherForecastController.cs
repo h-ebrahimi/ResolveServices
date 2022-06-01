@@ -15,35 +15,31 @@ namespace WebApplication.Controllers
         private TestSingletonServiceWithoutInterface _singletonServiceWithoutInterface;
         private ITestTransientService _transientService;
         private TestTransientServiceWithoutInterface _transientServiceWithoutInterface;
-        private IServiceProvider _provider;
 
-        public WeatherForecastController(/*ITestScopedService scopedService, TestScopedServiceWithoutInterface scopedServiceWithoutInterface, ITestSingletonService singletonService, TestSingletonServiceWithoutInterface singletonServiceWithoutInterface, ITestTransientService transientService, TestTransientServiceWithoutInterface transientServiceWithoutInterface*/ IServiceProvider provider)
+        public WeatherForecastController(ITestScopedService scopedService, TestScopedServiceWithoutInterface scopedServiceWithoutInterface, ITestSingletonService singletonService, TestSingletonServiceWithoutInterface singletonServiceWithoutInterface, ITestTransientService transientService, TestTransientServiceWithoutInterface transientServiceWithoutInterface)
         {
-            _provider = provider;
-
-            /*_scopedService = scopedService;
+            _scopedService = scopedService;
             _scopedServiceWithoutInterface = scopedServiceWithoutInterface;
             _singletonService = singletonService;
             _singletonServiceWithoutInterface = singletonServiceWithoutInterface;
             _transientService = transientService;
-            _transientServiceWithoutInterface = transientServiceWithoutInterface;*/
+            _transientServiceWithoutInterface = transientServiceWithoutInterface;
         }
 
         [HttpGet]
         public IActionResult Get()
-        {
-            var scope = _provider.CreateScope();
-            _scopedService = scope.ServiceProvider.GetRequiredService<ITestScopedService>();
+        {           
+           
             var obj = new
             {
-                //Service1 = _singletonServiceWithoutInterface.Do(),
-                //Service2 = _singletonService.Do(),
+                Service1 = _singletonServiceWithoutInterface.Do(),
+                Service2 = _singletonService.Do(),
 
-                //Service3 = _scopedServiceWithoutInterface.Do(),
+                Service3 = _scopedServiceWithoutInterface.Do(),
                 Service4 = _scopedService.Do(),
 
-                //Service5 = _transientServiceWithoutInterface.Do(),
-                //Service6 = _transientService.Do()
+                Service5 = _transientServiceWithoutInterface.Do(),
+                Service6 = _transientService.Do()
             };
 
             return Ok(obj);
